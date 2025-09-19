@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aura - Your Supportive Chat Companion</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💙</text></svg>">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="chat-header">
+            <div class="header-content">
+                <div class="logo">
+                    <span class="logo-icon">💙</span>
+                    <h1>Aura</h1>
+                </div>
+                <p class="tagline">Your Supportive Chat Companion</p>
+            </div>
+        </header>
+
+        <!-- Chat Container -->
+        <div class="chat-container">
+            <div class="chat-box" id="chat-box">
+                <!-- Welcome Message -->
+                <div class="chat-message bot welcome-message">
+                    <div class="message-content">
+                        <div class="message-avatar">💙</div>
+                        <div class="message-text">
+                            <p>Hello! I'm Aura, your supportive chat companion. I'm here to listen and provide a safe space for you to share your thoughts and feelings. How are you doing today?</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Typing Indicator -->
+            <div class="typing-indicator" id="typing-indicator" style="display: none;">
+                <div class="typing-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <p>Aura is typing...</p>
+            </div>
+
+            <!-- Input Area -->
+            <div class="chat-input-container">
+                <div class="chat-input">
+                    <textarea 
+                        id="user-input" 
+                        placeholder="Share what's on your mind..." 
+                        rows="1"
+                        maxlength="1000"
+                    ></textarea>
+                    <button id="send-btn" class="send-button" disabled>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22,2 15,22 11,13 2,9 22,2"></polygon>
+                        </svg>
+                    </button>
+                </div>
+                <div class="input-footer">
+                    <span class="char-count" id="char-count">0/1000</span>
+                    <span class="disclaimer">Aura is not a substitute for professional mental health care</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <div class="footer-content">
+                <p>&copy; 2024 Aura Chatbot. Built with empathy and care.</p>
+                <div class="footer-links">
+                    <a href="#" onclick="showAbout()">About</a>
+                    <a href="#" onclick="showPrivacy()">Privacy</a>
+                    <a href="#" onclick="showHelp()">Help</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- About Modal -->
+    <div id="about-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>About Aura</h2>
+                <button class="close-btn" onclick="closeModal('about-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Aura is an empathetic AI chatbot designed to provide supportive conversations and a safe space for sharing thoughts and feelings.</p>
+                <p><strong>Important:</strong> Aura is not a substitute for professional mental health care. If you're experiencing a mental health crisis, please contact a mental health professional or emergency services.</p>
+                <h3>Features:</h3>
+                <ul>
+                    <li>Empathetic and supportive responses</li>
+                    <li>Safe, non-judgmental environment</li>
+                    <li>24/7 availability</li>
+                    <li>Privacy-focused conversations</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Privacy Modal -->
+    <div id="privacy-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Privacy Policy</h2>
+                <button class="close-btn" onclick="closeModal('privacy-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Your privacy is important to us. Here's how we handle your data:</p>
+                <ul>
+                    <li>Conversations are processed in real-time and not stored permanently</li>
+                    <li>No personal information is collected or shared</li>
+                    <li>All interactions are anonymous</li>
+                    <li>We use industry-standard security measures</li>
+                </ul>
+                <p>For more detailed information, please contact us.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div id="help-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Help & Support</h2>
+                <button class="close-btn" onclick="closeModal('help-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <h3>How to use Aura:</h3>
+                <ol>
+                    <li>Type your message in the input field</li>
+                    <li>Press Enter or click the send button</li>
+                    <li>Wait for Aura's response</li>
+                    <li>Continue the conversation naturally</li>
+                </ol>
+                <h3>Tips for better conversations:</h3>
+                <ul>
+                    <li>Be open and honest about your feelings</li>
+                    <li>Ask specific questions if you need guidance</li>
+                    <li>Take breaks if you feel overwhelmed</li>
+                    <li>Remember that Aura is here to support you</li>
+                </ul>
+                <h3>Emergency Resources:</h3>
+                <p>If you're in crisis, please contact:</p>
+                <ul>
+                    <li>National Suicide Prevention Lifeline: 988</li>
+                    <li>Crisis Text Line: Text HOME to 741741</li>
+                    <li>Emergency Services: 911</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const userInput = document.getElementById("user-input");
+        const sendBtn = document.getElementById("send-btn");
+        const chatBox = document.getElementById("chat-box");
+        const typingIndicator = document.getElementById("typing-indicator");
+        const charCount = document.getElementById("char-count");
+
+        // Auto-resize textarea
+        userInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+            
+            // Update character count
+            const count = this.value.length;
+            charCount.textContent = `${count}/1000`;
+            
+            // Enable/disable send button
+            sendBtn.disabled = count === 0 || count > 1000;
+        });
+
+        // Send message function
+        const sendMessage = async () => {
+            const messageText = userInput.value.trim();
+            if (messageText === "" || messageText.length > 1000) return;
+
+            // Disable input and show typing indicator
+            userInput.disabled = true;
+            sendBtn.disabled = true;
+            showTypingIndicator();
+
+            // Display user message
+            addMessage(messageText, "user");
+            userInput.value = "";
+            userInput.style.height = 'auto';
+            charCount.textContent = "0/1000";
+
+            // Get bot response
+            try {
+                const response = await fetch("/get_response", {
+                    method: "POST",
+                    headers: { 
+                        "Content-Type": "application/json",
+                        "Accept": "application/json"
+                    },
+                    body: JSON.stringify({ message: messageText }),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                // Hide typing indicator and show response
+                hideTypingIndicator();
+                addMessage(data.response, "bot");
+
+            } catch (error) {
+                console.error("Error:", error);
+                hideTypingIndicator();
+                addMessage("I'm sorry, I'm having trouble right now. Please try again in a moment.", "bot");
+            } finally {
+                // Re-enable input
+                userInput.disabled = false;
+                userInput.focus();
+            }
+        };
+
+        // Add message to chat
+        const addMessage = (text, sender) => {
+            const messageElement = document.createElement("div");
+            messageElement.classList.add("chat-message", sender);
+
+            const messageContent = document.createElement("div");
+            messageContent.classList.add("message-content");
+
+            if (sender === "bot") {
+                const avatar = document.createElement("div");
+                avatar.classList.add("message-avatar");
+                avatar.textContent = "💙";
+                messageContent.appendChild(avatar);
+            }
+
+            const messageText = document.createElement("div");
+            messageText.classList.add("message-text");
+            const p = document.createElement("p");
+            p.textContent = text;
+            messageText.appendChild(p);
+            messageContent.appendChild(messageText);
+
+            messageElement.appendChild(messageContent);
+            chatBox.appendChild(messageElement);
+
+            // Scroll to bottom
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // Add animation
+            messageElement.style.opacity = "0";
+            messageElement.style.transform = "translateY(20px)";
+            setTimeout(() => {
+                messageElement.style.transition = "all 0.3s ease";
+                messageElement.style.opacity = "1";
+                messageElement.style.transform = "translateY(0)";
+            }, 100);
+        };
+
+        // Show typing indicator
+        const showTypingIndicator = () => {
+            typingIndicator.style.display = "block";
+            chatBox.scrollTop = chatBox.scrollHeight;
+        };
+
+        // Hide typing indicator
+        const hideTypingIndicator = () => {
+            typingIndicator.style.display = "none";
+        };
+
+        // Event listeners
+        sendBtn.addEventListener("click", sendMessage);
+        
+        userInput.addEventListener("keydown", (event) => {
+            if (event.key === "Enter" && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Modal functions
+        const showAbout = () => {
+            document.getElementById('about-modal').style.display = 'flex';
+        };
+
+        const showPrivacy = () => {
+            document.getElementById('privacy-modal').style.display = 'flex';
+        };
+
+        const showHelp = () => {
+            document.getElementById('help-modal').style.display = 'flex';
+        };
+
+        const closeModal = (modalId) => {
+            document.getElementById(modalId).style.display = 'none';
+        };
+
+        // Close modal when clicking outside
+        window.addEventListener('click', (event) => {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        });
+
+        // Focus input on load
+        window.addEventListener('load', () => {
+            userInput.focus();
+        });
+
+        // Handle page visibility change
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                userInput.focus();
+            }
+        });
+    </script>
+</body>
+</html>
