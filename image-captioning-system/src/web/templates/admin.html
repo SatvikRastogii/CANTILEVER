@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Image Captioning System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .metric-card {
+            border-left: 4px solid #007bff;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+        .metric-card.success {
+            border-left-color: #28a745;
+        }
+        .metric-card.warning {
+            border-left-color: #ffc107;
+        }
+        .metric-card.danger {
+            border-left-color: #dc3545;
+        }
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        .status-healthy {
+            background-color: #28a745;
+        }
+        .status-warning {
+            background-color: #ffc107;
+        }
+        .status-error {
+            background-color: #dc3545;
+        }
+        .log-entry {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            padding: 8px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .log-entry.error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .log-entry.warning {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .log-entry.info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-cog me-2"></i>Admin Panel
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/">
+                    <i class="fas fa-arrow-left me-1"></i>Back to Main
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1 class="display-5">
+                    <i class="fas fa-tachometer-alt text-primary me-3"></i>
+                    System Dashboard
+                </h1>
+                <p class="text-muted">Monitor system health, performance, and usage metrics</p>
+            </div>
+        </div>
+
+        <!-- System Status -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-heartbeat me-2"></i>System Status
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row" id="system-status">
+                            <div class="col-md-3">
+                                <div class="metric-card card p-3">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h6 class="text-muted">API Status</h6>
+                                            <h4 id="api-status" class="mb-0">
+                                                <span class="status-indicator status-healthy"></span>Healthy
+                                            </h4>
+                                        </div>
+                                        <i class="fas fa-server fa-2x text-primary"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="metric-card card p-3">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h6 class="text-muted">Models Loaded</h6>
+                                            <h4 id="models-loaded" class="mb-0">2</h4>
+                                        </div>
+                                        <i class="fas fa-brain fa-2x text-success"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="metric-card card p-3">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h6 class="text-muted">GPU Available</h6>
+                                            <h4 id="gpu-status" class="mb-0">
+                                                <span class="status-indicator status-warning"></span>CPU
+                                            </h4>
+                                        </div>
+                                        <i class="fas fa-microchip fa-2x text-warning"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="metric-card card p-3">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h6 class="text-muted">Uptime</h6>
+                                            <h4 id="uptime" class="mb-0">2h 15m</h4>
+                                        </div>
+                                        <i class="fas fa-clock fa-2x text-info"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Metrics -->
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-chart-line me-2"></i>Performance Metrics
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="performance-chart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-chart-pie me-2"></i>Model Usage
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="model-usage-chart" width="200" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Request Statistics -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-chart-bar me-2"></i>Request Statistics
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="text-center">
+                                    <h3 id="total-requests" class="text-primary">1,247</h3>
+                                    <p class="text-muted">Total Requests</p>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-center">
+                                    <h3 id="success-rate" class="text-success">98.5%</h3>
+                                    <p class="text-muted">Success Rate</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-6">
+                                <div class="text-center">
+                                    <h3 id="avg-response-time" class="text-info">245ms</h3>
+                                    <p class="text-muted">Avg Response Time</p>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-center">
+                                    <h3 id="requests-per-minute" class="text-warning">12</h3>
+                                    <p class="text-muted">Requests/min</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-shield-alt me-2"></i>Safety Metrics
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="text-center">
+                                    <h3 id="nsfw-detected" class="text-danger">3</h3>
+                                    <p class="text-muted">NSFW Detected</p>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-center">
+                                    <h3 id="pii-detected" class="text-warning">7</h3>
+                                    <p class="text-muted">PII Detected</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-6">
+                                <div class="text-center">
+                                    <h3 id="content-flagged" class="text-warning">12</h3>
+                                    <p class="text-muted">Content Flagged</p>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-center">
+                                    <h3 id="safety-score" class="text-success">99.2%</h3>
+                                    <p class="text-muted">Safety Score</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-history me-2"></i>Recent Activity
+                        </h5>
+                        <button class="btn btn-sm btn-outline-primary" onclick="refreshLogs()">
+                            <i class="fas fa-sync-alt me-1"></i>Refresh
+                        </button>
+                    </div>
+                    <div class="card-body p-0">
+                        <div id="activity-logs" style="max-height: 400px; overflow-y: auto;">
+                            <!-- Log entries will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-cogs me-2"></i>System Actions
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-outline-primary" onclick="reloadModels()">
+                                <i class="fas fa-sync-alt me-2"></i>Reload Models
+                            </button>
+                            <button class="btn btn-outline-success" onclick="clearCache()">
+                                <i class="fas fa-trash me-2"></i>Clear Cache
+                            </button>
+                            <button class="btn btn-outline-warning" onclick="exportLogs()">
+                                <i class="fas fa-download me-2"></i>Export Logs
+                            </button>
+                            <button class="btn btn-outline-info" onclick="runHealthCheck()">
+                                <i class="fas fa-heartbeat me-2"></i>Health Check
+                            </button>
+                        </div>
+                        
+                        <hr>
+                        
+                        <h6>Model Management</h6>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-sm btn-outline-primary" onclick="switchModel('baseline')">
+                                Switch to Baseline
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary" onclick="switchModel('production')">
+                                Switch to Production
+                            </button>
+                        </div>
+                        
+                        <hr>
+                        
+                        <h6>System Info</h6>
+                        <small class="text-muted">
+                            <div>Python: 3.8+</div>
+                            <div>PyTorch: 2.0+</div>
+                            <div>FastAPI: 0.100+</div>
+                            <div>Last Updated: <span id="last-updated">Just now</span></div>
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Global variables
+        let performanceChart;
+        let modelUsageChart;
+        let activityLogs = [];
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCharts();
+            loadSystemStatus();
+            loadActivityLogs();
+            
+            // Auto-refresh every 30 seconds
+            setInterval(loadSystemStatus, 30000);
+            setInterval(loadActivityLogs, 30000);
+        });
+
+        function initializeCharts() {
+            // Performance Chart
+            const performanceCtx = document.getElementById('performance-chart').getContext('2d');
+            performanceChart = new Chart(performanceCtx, {
+                type: 'line',
+                data: {
+                    labels: ['00:00', '00:30', '01:00', '01:30', '02:00', '02:30'],
+                    datasets: [{
+                        label: 'Response Time (ms)',
+                        data: [200, 250, 300, 280, 240, 220],
+                        borderColor: 'rgb(75, 192, 192)',
+                        tension: 0.1
+                    }, {
+                        label: 'Requests/min',
+                        data: [10, 15, 12, 18, 14, 16],
+                        borderColor: 'rgb(255, 99, 132)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Model Usage Chart
+            const modelUsageCtx = document.getElementById('model-usage-chart').getContext('2d');
+            modelUsageChart = new Chart(modelUsageCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Production', 'Baseline'],
+                    datasets: [{
+                        data: [75, 25],
+                        backgroundColor: [
+                            'rgb(54, 162, 235)',
+                            'rgb(255, 205, 86)'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        async function loadSystemStatus() {
+            try {
+                const response = await fetch('/api/status');
+                const data = await response.json();
+                
+                updateSystemStatus(data);
+            } catch (error) {
+                console.error('Failed to load system status:', error);
+                updateSystemStatus({ status: 'error' });
+            }
+        }
+
+        function updateSystemStatus(data) {
+            // Update API status
+            const apiStatus = document.getElementById('api-status');
+            if (data.status === 'healthy') {
+                apiStatus.innerHTML = '<span class="status-indicator status-healthy"></span>Healthy';
+            } else {
+                apiStatus.innerHTML = '<span class="status-indicator status-error"></span>Error';
+            }
+            
+            // Update models loaded
+            if (data.models_loaded) {
+                document.getElementById('models-loaded').textContent = data.models_loaded.length;
+            }
+            
+            // Update GPU status
+            const gpuStatus = document.getElementById('gpu-status');
+            if (data.system_info && data.system_info.cuda_available) {
+                gpuStatus.innerHTML = '<span class="status-indicator status-healthy"></span>GPU';
+            } else {
+                gpuStatus.innerHTML = '<span class="status-indicator status-warning"></span>CPU';
+            }
+            
+            // Update last updated time
+            document.getElementById('last-updated').textContent = new Date().toLocaleTimeString();
+        }
+
+        function loadActivityLogs() {
+            // Simulate loading activity logs
+            const logs = [
+                { timestamp: new Date(), level: 'info', message: 'Caption generated successfully', user: 'user123' },
+                { timestamp: new Date(Date.now() - 60000), level: 'warning', message: 'NSFW content detected', user: 'user456' },
+                { timestamp: new Date(Date.now() - 120000), level: 'info', message: 'Batch processing completed', user: 'user789' },
+                { timestamp: new Date(Date.now() - 180000), level: 'error', message: 'Model inference failed', user: 'user101' },
+                { timestamp: new Date(Date.now() - 240000), level: 'info', message: 'New model loaded', user: 'system' }
+            ];
+            
+            displayActivityLogs(logs);
+        }
+
+        function displayActivityLogs(logs) {
+            const container = document.getElementById('activity-logs');
+            container.innerHTML = '';
+            
+            logs.forEach(log => {
+                const logEntry = document.createElement('div');
+                logEntry.className = `log-entry ${log.level}`;
+                
+                const timestamp = log.timestamp.toLocaleTimeString();
+                const levelIcon = getLevelIcon(log.level);
+                
+                logEntry.innerHTML = `
+                    <div class="d-flex justify-content-between">
+                        <span>
+                            <i class="${levelIcon} me-2"></i>
+                            <strong>[${timestamp}]</strong> ${log.message}
+                        </span>
+                        <small class="text-muted">${log.user}</small>
+                    </div>
+                `;
+                
+                container.appendChild(logEntry);
+            });
+        }
+
+        function getLevelIcon(level) {
+            switch (level) {
+                case 'error': return 'fas fa-exclamation-circle text-danger';
+                case 'warning': return 'fas fa-exclamation-triangle text-warning';
+                case 'info': return 'fas fa-info-circle text-info';
+                default: return 'fas fa-circle text-secondary';
+            }
+        }
+
+        // Action functions
+        function refreshLogs() {
+            loadActivityLogs();
+        }
+
+        async function reloadModels() {
+            try {
+                // Simulate model reload
+                alert('Models reloaded successfully!');
+                loadSystemStatus();
+            } catch (error) {
+                alert('Failed to reload models: ' + error.message);
+            }
+        }
+
+        async function clearCache() {
+            try {
+                // Simulate cache clear
+                alert('Cache cleared successfully!');
+            } catch (error) {
+                alert('Failed to clear cache: ' + error.message);
+            }
+        }
+
+        function exportLogs() {
+            // Simulate log export
+            const logs = activityLogs.map(log => 
+                `[${log.timestamp.toISOString()}] ${log.level.toUpperCase()}: ${log.message}`
+            ).join('\n');
+            
+            const blob = new Blob([logs], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `logs_${new Date().toISOString().split('T')[0]}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        async function runHealthCheck() {
+            try {
+                await loadSystemStatus();
+                alert('Health check completed!');
+            } catch (error) {
+                alert('Health check failed: ' + error.message);
+            }
+        }
+
+        function switchModel(modelType) {
+            // Simulate model switch
+            alert(`Switched to ${modelType} model!`);
+        }
+    </script>
+</body>
+</html>

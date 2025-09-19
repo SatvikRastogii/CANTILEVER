@@ -1,0 +1,32 @@
+# Production model configuration
+model_type: "production"
+vocab_size: 10000
+embed_dim: 512
+num_heads: 8
+num_layers: 6
+ff_dim: 2048
+max_len: 100
+dropout: 0.1
+
+# Production model specific
+clip_model_name: "ViT-B/32"
+freeze_clip: false
+use_clip_scoring: true
+
+# Training parameters
+learning_rate: 5e-5
+weight_decay: 1e-5
+batch_size: 16  # Smaller batch size for larger model
+num_epochs: 50
+warmup_steps: 1000
+
+# Inference parameters
+beam_size: 3
+temperature: 0.8
+max_length: 50
+
+# Special tokens
+pad_token_id: 0
+start_token_id: 1
+end_token_id: 2
+unk_token_id: 3

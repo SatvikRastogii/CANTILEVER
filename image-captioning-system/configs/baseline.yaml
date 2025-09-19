@@ -1,0 +1,27 @@
+# Baseline model configuration
+model_type: "baseline"
+vocab_size: 10000
+embed_dim: 512
+num_heads: 8
+num_layers: 6
+ff_dim: 2048
+max_len: 100
+dropout: 0.1
+
+# Training parameters
+learning_rate: 1e-4
+weight_decay: 1e-5
+batch_size: 32
+num_epochs: 100
+warmup_steps: 1000
+
+# Inference parameters
+beam_size: 1
+temperature: 1.0
+max_length: 50
+
+# Special tokens
+pad_token_id: 0
+start_token_id: 1
+end_token_id: 2
+unk_token_id: 3

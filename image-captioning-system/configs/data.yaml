@@ -1,0 +1,35 @@
+# Data configuration
+dataset_type: "coco"  # or "conceptual_captions"
+
+# Dataset paths
+train_path: "data/coco/train.json"
+val_path: "data/coco/val.json"
+test_path: "data/coco/test.json"
+image_dir: "data/coco/images"
+
+# Data processing
+image_size: 224
+max_caption_length: 100
+min_caption_length: 5
+
+# Augmentation (for training)
+use_augmentation: true
+augmentation_params:
+  horizontal_flip: 0.5
+  color_jitter:
+    brightness: 0.2
+    contrast: 0.2
+    saturation: 0.2
+    hue: 0.1
+
+# Filtering
+use_clip_filtering: true
+clip_threshold: 0.2
+quality_threshold: 0.3
+min_image_size: 64
+max_image_size: 1024
+
+# Tokenization
+vocab_size: 10000
+min_word_freq: 2
+max_vocab_size: 50000

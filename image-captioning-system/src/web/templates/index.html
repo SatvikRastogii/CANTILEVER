@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Captioning System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .upload-area {
+            border: 2px dashed #dee2e6;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .upload-area:hover {
+            border-color: #007bff;
+            background-color: #f8f9fa;
+        }
+        .upload-area.dragover {
+            border-color: #007bff;
+            background-color: #e3f2fd;
+        }
+        .image-preview {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .caption-result {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .loading {
+            display: none;
+        }
+        .loading.show {
+            display: block;
+        }
+        .batch-results {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .result-card {
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: white;
+        }
+        .score-badge {
+            font-size: 0.8em;
+        }
+        .warning-badge {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        .error-badge {
+            background-color: #dc3545;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-image me-2"></i>Image Captioning System
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/admin">
+                    <i class="fas fa-cog me-1"></i>Admin
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1 class="display-4 text-center mb-3">
+                    <i class="fas fa-image text-primary me-3"></i>
+                    Image Captioning System
+                </h1>
+                <p class="lead text-center text-muted">
+                    Generate accurate, safe, and accessible captions for your images using state-of-the-art AI
+                </p>
+            </div>
+        </div>
+
+        <!-- Upload Section -->
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-upload me-2"></i>Upload Image
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Single Image Upload -->
+                        <div id="single-upload-section">
+                            <div class="upload-area" id="upload-area">
+                                <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                                <h5>Drag & Drop or Click to Upload</h5>
+                                <p class="text-muted">Supported formats: JPG, PNG, GIF, WebP</p>
+                                <input type="file" id="image-input" accept="image/*" style="display: none;">
+                            </div>
+                        </div>
+
+                        <!-- Batch Upload -->
+                        <div class="mt-4">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6>Batch Upload</h6>
+                                <button class="btn btn-outline-primary btn-sm" id="toggle-batch">
+                                    <i class="fas fa-layer-group me-1"></i>Enable Batch
+                                </button>
+                            </div>
+                            <div id="batch-upload-section" style="display: none;">
+                                <div class="upload-area" id="batch-upload-area">
+                                    <i class="fas fa-images fa-3x text-muted mb-3"></i>
+                                    <h5>Upload Multiple Images</h5>
+                                    <p class="text-muted">Select multiple images for batch processing</p>
+                                    <input type="file" id="batch-image-input" accept="image/*" multiple style="display: none;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Settings -->
+                        <div class="mt-4">
+                            <h6>Caption Settings</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label for="style-select" class="form-label">Style</label>
+                                    <select class="form-select" id="style-select">
+                                        <option value="descriptive">Descriptive</option>
+                                        <option value="concise">Concise</option>
+                                        <option value="SEO">SEO</option>
+                                        <option value="poetic">Poetic</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="model-select" class="form-label">Model</label>
+                                    <select class="form-select" id="model-select">
+                                        <option value="production">Production (High Quality)</option>
+                                        <option value="baseline">Baseline (Fast)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-md-4">
+                                    <label for="max-length" class="form-label">Max Length</label>
+                                    <input type="range" class="form-range" id="max-length" min="10" max="200" value="50">
+                                    <div class="text-center">
+                                        <span id="max-length-value">50</span> words
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="beam-size" class="form-label">Beam Size</label>
+                                    <input type="range" class="form-range" id="beam-size" min="1" max="5" value="1">
+                                    <div class="text-center">
+                                        <span id="beam-size-value">1</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="temperature" class="form-label">Temperature</label>
+                                    <input type="range" class="form-range" id="temperature" min="0.1" max="2.0" step="0.1" value="1.0">
+                                    <div class="text-center">
+                                        <span id="temperature-value">1.0</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Generate Button -->
+                        <div class="mt-4 text-center">
+                            <button class="btn btn-primary btn-lg" id="generate-btn" disabled>
+                                <i class="fas fa-magic me-2"></i>Generate Caption
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Section -->
+        <div class="row mt-4">
+            <div class="col-lg-8 mx-auto">
+                <div class="loading text-center" id="loading">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Generating caption...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="row mt-4">
+            <div class="col-lg-8 mx-auto">
+                <div id="results-section" style="display: none;">
+                    <!-- Single Result -->
+                    <div id="single-result">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>Image Preview</h5>
+                                <img id="result-image" class="image-preview" alt="Uploaded image">
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Generated Caption</h5>
+                                <div class="caption-result">
+                                    <p id="result-caption" class="lead"></p>
+                                    <div class="mt-3">
+                                        <h6>Alt Text</h6>
+                                        <p id="result-alt-text" class="text-muted"></p>
+                                    </div>
+                                    <div class="mt-3">
+                                        <h6>Scores</h6>
+                                        <div id="result-scores"></div>
+                                    </div>
+                                    <div class="mt-3">
+                                        <h6>Objects Detected</h6>
+                                        <div id="result-objects"></div>
+                                    </div>
+                                    <div class="mt-3" id="result-warnings" style="display: none;">
+                                        <h6>Warnings</h6>
+                                        <div id="warnings-list"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Batch Results -->
+                    <div id="batch-results" style="display: none;">
+                        <h5>Batch Results</h5>
+                        <div class="batch-results" id="batch-results-list"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features Section -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <h3 class="text-center mb-4">Features</h3>
+                <div class="row">
+                    <div class="col-md-3 text-center mb-4">
+                        <i class="fas fa-shield-alt fa-3x text-success mb-3"></i>
+                        <h5>Safety First</h5>
+                        <p class="text-muted">Built-in NSFW detection and content moderation</p>
+                    </div>
+                    <div class="col-md-3 text-center mb-4">
+                        <i class="fas fa-universal-access fa-3x text-info mb-3"></i>
+                        <h5>Accessibility</h5>
+                        <p class="text-muted">Generate accessible alt text for screen readers</p>
+                    </div>
+                    <div class="col-md-3 text-center mb-4">
+                        <i class="fas fa-bolt fa-3x text-warning mb-3"></i>
+                        <h5>Fast Processing</h5>
+                        <p class="text-muted">Multiple model tiers for speed vs quality</p>
+                    </div>
+                    <div class="col-md-3 text-center mb-4">
+                        <i class="fas fa-cogs fa-3x text-primary mb-3"></i>
+                        <h5>Customizable</h5>
+                        <p class="text-muted">Adjustable style, length, and generation parameters</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-light mt-5 py-4">
+        <div class="container text-center">
+            <p class="text-muted mb-0">
+                &copy; 2024 Image Captioning System. Built with FastAPI and PyTorch.
+            </p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Global variables
+        let isBatchMode = false;
+        let selectedFiles = [];
+
+        // DOM elements
+        const uploadArea = document.getElementById('upload-area');
+        const batchUploadArea = document.getElementById('batch-upload-area');
+        const imageInput = document.getElementById('image-input');
+        const batchImageInput = document.getElementById('batch-image-input');
+        const generateBtn = document.getElementById('generate-btn');
+        const loading = document.getElementById('loading');
+        const resultsSection = document.getElementById('results-section');
+        const singleResult = document.getElementById('single-result');
+        const batchResults = document.getElementById('batch-results');
+
+        // Event listeners
+        uploadArea.addEventListener('click', () => imageInput.click());
+        batchUploadArea.addEventListener('click', () => batchImageInput.click());
+        
+        imageInput.addEventListener('change', handleFileSelect);
+        batchImageInput.addEventListener('change', handleBatchFileSelect);
+        
+        generateBtn.addEventListener('click', generateCaptions);
+        
+        document.getElementById('toggle-batch').addEventListener('click', toggleBatchMode);
+        
+        // Range sliders
+        document.getElementById('max-length').addEventListener('input', (e) => {
+            document.getElementById('max-length-value').textContent = e.target.value;
+        });
+        
+        document.getElementById('beam-size').addEventListener('input', (e) => {
+            document.getElementById('beam-size-value').textContent = e.target.value;
+        });
+        
+        document.getElementById('temperature').addEventListener('input', (e) => {
+            document.getElementById('temperature-value').textContent = e.target.value;
+        });
+
+        // Drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                imageInput.files = files;
+                handleFileSelect({ target: { files: files } });
+            }
+        });
+
+        // Functions
+        function toggleBatchMode() {
+            isBatchMode = !isBatchMode;
+            const batchSection = document.getElementById('batch-upload-section');
+            const toggleBtn = document.getElementById('toggle-batch');
+            
+            if (isBatchMode) {
+                batchSection.style.display = 'block';
+                toggleBtn.innerHTML = '<i class="fas fa-image me-1"></i>Single Mode';
+                toggleBtn.classList.remove('btn-outline-primary');
+                toggleBtn.classList.add('btn-primary');
+            } else {
+                batchSection.style.display = 'none';
+                toggleBtn.innerHTML = '<i class="fas fa-layer-group me-1"></i>Enable Batch';
+                toggleBtn.classList.remove('btn-primary');
+                toggleBtn.classList.add('btn-outline-primary');
+            }
+        }
+
+        function handleFileSelect(event) {
+            const files = event.target.files;
+            if (files.length > 0) {
+                selectedFiles = Array.from(files);
+                generateBtn.disabled = false;
+                showPreview(files[0]);
+            }
+        }
+
+        function handleBatchFileSelect(event) {
+            const files = event.target.files;
+            if (files.length > 0) {
+                selectedFiles = Array.from(files);
+                generateBtn.disabled = false;
+                showBatchPreview(files);
+            }
+        }
+
+        function showPreview(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.className = 'image-preview mt-2';
+                img.style.maxHeight = '200px';
+                
+                // Remove existing preview
+                const existingPreview = uploadArea.querySelector('.image-preview');
+                if (existingPreview) {
+                    existingPreview.remove();
+                }
+                
+                uploadArea.appendChild(img);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function showBatchPreview(files) {
+            const previewContainer = document.createElement('div');
+            previewContainer.className = 'mt-3';
+            previewContainer.innerHTML = `<h6>Selected Files (${files.length})</h6>`;
+            
+            // Remove existing preview
+            const existingPreview = batchUploadArea.querySelector('.mt-3');
+            if (existingPreview) {
+                existingPreview.remove();
+            }
+            
+            files.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'image-preview me-2 mb-2';
+                    img.style.maxHeight = '100px';
+                    img.style.maxWidth = '100px';
+                    img.style.objectFit = 'cover';
+                    previewContainer.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            });
+            
+            batchUploadArea.appendChild(previewContainer);
+        }
+
+        async function generateCaptions() {
+            if (selectedFiles.length === 0) return;
+            
+            showLoading(true);
+            hideResults();
+            
+            try {
+                const formData = new FormData();
+                
+                // Add files
+                selectedFiles.forEach(file => {
+                    formData.append('files', file);
+                });
+                
+                // Add settings
+                formData.append('style', document.getElementById('style-select').value);
+                formData.append('max_length', document.getElementById('max-length').value);
+                formData.append('beam_size', document.getElementById('beam-size').value);
+                formData.append('temperature', document.getElementById('temperature').value);
+                formData.append('model_type', document.getElementById('model-select').value);
+                
+                const endpoint = isBatchMode ? '/batch-upload' : '/upload';
+                
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showResults(result);
+                } else {
+                    showError(result.error);
+                }
+                
+            } catch (error) {
+                showError('An error occurred while generating captions: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function showLoading(show) {
+            loading.classList.toggle('show', show);
+            generateBtn.disabled = show;
+        }
+
+        function hideResults() {
+            resultsSection.style.display = 'none';
+        }
+
+        function showResults(result) {
+            resultsSection.style.display = 'block';
+            
+            if (isBatchMode) {
+                showBatchResults(result);
+            } else {
+                showSingleResult(result);
+            }
+        }
+
+        function showSingleResult(result) {
+            singleResult.style.display = 'block';
+            batchResults.style.display = 'none';
+            
+            const data = result.result;
+            const imageBase64 = result.image_base64;
+            
+            // Show image
+            document.getElementById('result-image').src = `data:image/jpeg;base64,${imageBase64}`;
+            
+            // Show caption
+            document.getElementById('result-caption').textContent = data.caption;
+            document.getElementById('result-alt-text').textContent = data.alt_text;
+            
+            // Show scores
+            const scoresDiv = document.getElementById('result-scores');
+            scoresDiv.innerHTML = '';
+            Object.entries(data.score).forEach(([key, value]) => {
+                const badge = document.createElement('span');
+                badge.className = 'badge bg-primary me-2 score-badge';
+                badge.textContent = `${key}: ${value.toFixed(2)}`;
+                scoresDiv.appendChild(badge);
+            });
+            
+            // Show objects
+            const objectsDiv = document.getElementById('result-objects');
+            objectsDiv.innerHTML = '';
+            data.objects.forEach(obj => {
+                const badge = document.createElement('span');
+                badge.className = 'badge bg-secondary me-2';
+                badge.textContent = obj;
+                objectsDiv.appendChild(badge);
+            });
+            
+            // Show warnings
+            const warningsDiv = document.getElementById('result-warnings');
+            const warningsList = document.getElementById('warnings-list');
+            if (data.warnings && data.warnings.length > 0) {
+                warningsDiv.style.display = 'block';
+                warningsList.innerHTML = '';
+                data.warnings.forEach(warning => {
+                    const alert = document.createElement('div');
+                    alert.className = 'alert alert-warning alert-sm';
+                    alert.textContent = warning;
+                    warningsList.appendChild(alert);
+                });
+            } else {
+                warningsDiv.style.display = 'none';
+            }
+        }
+
+        function showBatchResults(result) {
+            singleResult.style.display = 'none';
+            batchResults.style.display = 'block';
+            
+            const resultsList = document.getElementById('batch-results-list');
+            resultsList.innerHTML = '';
+            
+            result.result.results.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = 'result-card';
+                
+                const imageBase64 = result.images_base64[index];
+                
+                card.innerHTML = `
+                    <div class="row">
+                        <div class="col-md-4">
+                            <img src="data:image/jpeg;base64,${imageBase64}" class="image-preview" style="max-height: 150px;">
+                        </div>
+                        <div class="col-md-8">
+                            <h6>Caption</h6>
+                            <p>${item.caption}</p>
+                            <h6>Alt Text</h6>
+                            <p class="text-muted">${item.alt_text}</p>
+                            <div class="mt-2">
+                                ${Object.entries(item.score).map(([key, value]) => 
+                                    `<span class="badge bg-primary me-1 score-badge">${key}: ${value.toFixed(2)}</span>`
+                                ).join('')}
+                            </div>
+                            ${item.warnings && item.warnings.length > 0 ? 
+                                `<div class="mt-2">
+                                    ${item.warnings.map(warning => 
+                                        `<span class="badge warning-badge me-1">${warning}</span>`
+                                    ).join('')}
+                                </div>` : ''
+                            }
+                        </div>
+                    </div>
+                `;
+                
+                resultsList.appendChild(card);
+            });
+        }
+
+        function showError(error) {
+            alert('Error: ' + error);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check API health
+            fetch('/health')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status !== 'healthy') {
+                        console.warn('API is not healthy:', data);
+                    }
+                })
+                .catch(error => {
+                    console.error('Failed to check API health:', error);
+                });
+        });
+    </script>
+</body>
+</html>
